@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -39,7 +39,7 @@ const roomManager = new RoomManager(io);
 registerSocketHandlers(io, roomManager);
 
 // API Endpoints
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     uptimeSec: Math.floor(process.uptime()),
@@ -49,14 +49,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.get('/api/games', (req, res) => {
+app.get('/api/games', (req: Request, res: Response) => {
   res.json({
     success: true,
     games: Object.values(GAMES_METADATA),
   });
 });
 
-app.get('/api/rooms/:roomId', (req, res) => {
+app.get('/api/rooms/:roomId', (req: Request, res: Response) => {
   const roomId = req.params.roomId?.toUpperCase();
   const room = roomManager.getRoom(roomId);
 
@@ -91,11 +91,11 @@ if (fs.existsSync(clientDistPath)) {
   console.log(`Serving client production build from ${clientDistPath}`);
   app.use(express.static(clientDistPath));
 
-  app.get('*', (req, res) => {
+  app.get('*', (req: Request, res: Response) => {
     res.sendFile(path.join(clientDistPath, 'index.html'));
   });
 } else {
-  app.get('/', (req, res) => {
+  app.get('/', (req: Request, res: Response) => {
     res.send(`
       <!DOCTYPE html>
       <html>

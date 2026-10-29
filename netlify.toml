@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  VITE_SOCKET_URL = "https://multiplayergames-2.onrender.com"
 
 # SPA Fallback for client-side routing (e.g. /room/AB12CD or /?room=AB12CD)
 [[redirects]]

@@ -1,5 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
+export const DEFAULT_BACKEND_URL = 'https://multiplayergames-2.onrender.com';
+
 export function getBackendUrl(): string {
   try {
     const custom = localStorage.getItem('friends_arcade_backend_url');
@@ -10,11 +12,13 @@ export function getBackendUrl(): string {
     return import.meta.env.VITE_SOCKET_URL.trim();
   }
 
-  if (window.location.port === '5173') {
+  // Local Vite dev server
+  if (typeof window !== 'undefined' && window.location.port === '5173') {
     return 'http://localhost:3001';
   }
 
-  return window.location.origin;
+  // Live Render backend
+  return DEFAULT_BACKEND_URL;
 }
 
 export function setCustomBackendUrl(url: string): void {

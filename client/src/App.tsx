@@ -8,6 +8,7 @@ import { JoinRoomModal } from './components/JoinRoomModal';
 import { HowToPlayModal } from './components/HowToPlayModal';
 import { ServerConfigModal } from './components/ServerConfigModal';
 import { GameId } from '@shared/types';
+import { api } from './api';
 
 const MainApp: React.FC = () => {
   const { room, isConnected } = useRoom();
@@ -17,6 +18,13 @@ const MainApp: React.FC = () => {
   const [isServerConfigOpen, setIsServerConfigOpen] = useState(false);
   const [selectedGameForCreate, setSelectedGameForCreate] = useState<GameId | undefined>();
   const [prefilledJoinCode, setPrefilledJoinCode] = useState<string>('');
+
+  // Check backend health & wake sleeping Render free-tier instance on page load
+  useEffect(() => {
+    api.checkHealth().catch(() => {
+      // Background health check; Socket.IO autoConnect will connect when ready
+    });
+  }, []);
 
   // Check URL parameters for invitation links, e.g. /?room=AB12CD or /room/AB12CD
   useEffect(() => {

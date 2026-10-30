@@ -535,6 +535,10 @@ export class RoomManager {
     }, CONFIG.ROOM_CLEANUP_INTERVAL_MS);
   }
 
+  public getRoomCount(): number {
+    return this.rooms.size;
+  }
+
   public destroy(): void {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);

@@ -5,7 +5,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { CONFIG } from './config/constants.js';
+import { CONFIG, isOriginAllowed, getAllowedOrigins } from './config/constants.js';
 import { RoomManager } from './rooms/roomManager.js';
 import { registerSocketHandlers } from './sockets/socketHandler.js';
 import { GAMES_METADATA } from '../../shared/games.js';
@@ -16,10 +16,18 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app);
 
-// CORS configuration
-const corsOptions = {
-  origin: CONFIG.CLIENT_ORIGIN === '*' ? true : CONFIG.CLIENT_ORIGIN.split(','),
-  methods: ['GET', 'POST'],
+// CORS configuration supporting credentials and dynamic origins
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Rejected request from unauthorized origin: ${origin}`);
+      callback(null, false);
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true,
 };
 
@@ -38,16 +46,24 @@ const io = new Server(httpServer, {
 const roomManager = new RoomManager(io);
 registerSocketHandlers(io, roomManager);
 
-// API Endpoints
-app.get('/api/health', (req: Request, res: Response) => {
-  res.json({
+// API Endpoints: Health check (both /health and /api/health)
+const handleHealthCheck = (req: Request, res: Response) => {
+  res.status(200).json({
     status: 'ok',
+    service: 'friends-arcade-backend',
     uptimeSec: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
     environment: CONFIG.NODE_ENV,
     storage: '100% In-Memory (Zero Database)',
+    activeRooms: roomManager.getRoomCount(),
+    cors: {
+      allowedOrigins: getAllowedOrigins(),
+    },
   });
-});
+};
+
+app.get('/health', handleHealthCheck);
+app.get('/api/health', handleHealthCheck);
 
 app.get('/api/games', (req: Request, res: Response) => {
   res.json({

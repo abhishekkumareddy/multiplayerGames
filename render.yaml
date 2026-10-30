@@ -6,10 +6,12 @@ services:
     region: oregon
     buildCommand: npm install --include=dev && npm run build:server
     startCommand: node server/dist/server/src/server.js
-    healthCheckPath: /api/health
+    healthCheckPath: /health
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
+      - key: FRONTEND_URL
+        value: "https://friendsarcade.fun,https://www.friendsarcade.fun,http://localhost:5173"
       - key: CLIENT_ORIGIN
-        value: "*"
+        value: "https://friendsarcade.fun,https://www.friendsarcade.fun,http://localhost:5173"

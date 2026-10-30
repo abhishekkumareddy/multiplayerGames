@@ -11,6 +11,18 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, '../shared'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'framer-motion': ['framer-motion'],
+          'lucide-icons': ['lucide-react'],
+          'socket-client': ['socket.io-client'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     host: true,

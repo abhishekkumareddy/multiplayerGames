@@ -1,7 +1,25 @@
 import React, { useState } from 'react';
 import { useRoom } from '../hooks/useRoom';
+import { useRouter, Link } from '../router/Router';
 import { sounds } from '../utils/sound';
-import { Gamepad2, Volume2, VolumeX, Copy, Check, LogOut, HelpCircle, Wifi, WifiOff } from 'lucide-react';
+import {
+  Gamepad2,
+  Volume2,
+  VolumeX,
+  Copy,
+  Check,
+  LogOut,
+  HelpCircle,
+  Wifi,
+  WifiOff,
+  Menu,
+  X,
+  BookOpen,
+  Info,
+  Mail,
+  Home,
+  Sparkles,
+} from 'lucide-react';
 
 interface NavbarProps {
   onOpenCreate: () => void;
@@ -17,8 +35,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenServerConfig,
 }) => {
   const { room, isConnected, leaveRoom } = useRoom();
+  const { path, navigate } = useRouter();
   const [isMuted, setIsMuted] = useState(sounds.isMuted);
   const [copied, setCopied] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleSound = () => {
     const muted = sounds.toggleMute();
@@ -33,28 +53,119 @@ export const Navbar: React.FC<NavbarProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleNavClick = (targetPath: string) => {
+    setMobileMenuOpen(false);
+    if (room && targetPath !== '/') {
+      if (!confirm('Leave current multiplayer room to navigate to another page?')) {
+        return;
+      }
+      leaveRoom();
+    }
+    navigate(targetPath);
+  };
+
+  const handleGamesScroll = () => {
+    setMobileMenuOpen(false);
+    if (path !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById('games-grid')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      document.getElementById('games-grid')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const isLinkActive = (target: string) => {
+    if (target === '/' && path === '/') return true;
+    if (target !== '/' && path.startsWith(target)) return true;
+    return false;
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80">
+    <header className="sticky top-0 z-40 w-full bg-slate-950/85 backdrop-blur-xl border-b border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <div
-          onClick={() => {
-            if (room) {
-              if (confirm('Leave current room and return to homepage?')) {
-                leaveRoom();
+        {/* Left: Logo & Desktop Navigation */}
+        <div className="flex items-center gap-6">
+          <div
+            onClick={() => {
+              if (room) {
+                if (confirm('Leave current room and return to homepage?')) {
+                  leaveRoom();
+                  navigate('/');
+                }
+              } else {
+                navigate('/');
               }
-            }
-          }}
-          className="flex items-center gap-2.5 cursor-pointer group"
-        >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-            <Gamepad2 className="w-6 h-6 text-white" />
+            }}
+            className="flex items-center gap-2.5 cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+              <Gamepad2 className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <span className="font-display font-black text-lg tracking-tight text-white flex items-center gap-1.5">
+                Friends<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Arcade</span>
+              </span>
+            </div>
           </div>
-          <div>
-            <span className="font-display font-black text-lg tracking-tight text-white flex items-center gap-1.5">
-              Friends<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Arcade</span>
-            </span>
-          </div>
+
+          {/* Desktop Navigation Links */}
+          {!room && (
+            <nav className="hidden lg:flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => handleNavClick('/')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  isLinkActive('/') && path === '/'
+                    ? 'text-white bg-slate-800/90'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                }`}
+              >
+                Home
+              </button>
+              <button
+                type="button"
+                onClick={handleGamesScroll}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-900 transition-all"
+              >
+                Games
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavClick('/guides')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  isLinkActive('/guides')
+                    ? 'text-white bg-slate-800/90'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                }`}
+              >
+                Guides
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavClick('/about')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  isLinkActive('/about')
+                    ? 'text-white bg-slate-800/90'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                }`}
+              >
+                About Us
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavClick('/contact')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  isLinkActive('/contact')
+                    ? 'text-white bg-slate-800/90'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                }`}
+              >
+                Contact Us
+              </button>
+            </nav>
+          )}
         </div>
 
         {/* Center Room Code Pill (if in a room) */}
@@ -82,7 +193,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                 : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
             }`}
-            title="Click to check or configure backend server"
+            title="Click to check backend status or ping Render server"
           >
             {isConnected ? (
               <>
@@ -106,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isMuted ? <VolumeX className="w-4 h-4 text-slate-500" /> : <Volume2 className="w-4 h-4 text-blue-400" />}
           </button>
 
-          {/* How to play */}
+          {/* How to play modal trigger */}
           <button
             onClick={onOpenHowToPlay}
             className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-colors"
@@ -121,6 +232,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => {
                 if (confirm('Are you sure you want to leave this room?')) {
                   leaveRoom();
+                  navigate('/');
                 }
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 font-bold text-xs sm:text-sm transition-all"
@@ -133,7 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={onOpenJoin}
-                className="hidden xs:flex items-center px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs sm:text-sm transition-colors"
+                className="hidden sm:flex items-center px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs sm:text-sm transition-colors"
               >
                 Join Room
               </button>
@@ -145,8 +257,95 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
           )}
+
+          {/* Mobile Menu Hamburger */}
+          {!room && (
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(prev => !prev)}
+              className="lg:hidden p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-colors"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Mobile Drawer Navigation */}
+      {mobileMenuOpen && !room && (
+        <div className="lg:hidden border-t border-slate-800 bg-slate-950/95 px-4 pt-3 pb-5 space-y-2 backdrop-blur-xl">
+          <button
+            type="button"
+            onClick={() => handleNavClick('/')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-left transition-all ${
+              path === '/' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-900'
+            }`}
+          >
+            <Home className="w-4 h-4" />
+            Home
+          </button>
+          <button
+            type="button"
+            onClick={handleGamesScroll}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-900 text-left transition-all"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            Games Library
+          </button>
+          <button
+            type="button"
+            onClick={() => handleNavClick('/guides')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-left transition-all ${
+              path.startsWith('/guides') ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-900'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            Game Guides & Strategies
+          </button>
+          <button
+            type="button"
+            onClick={() => handleNavClick('/about')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-left transition-all ${
+              path === '/about' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-900'
+            }`}
+          >
+            <Info className="w-4 h-4" />
+            About Us
+          </button>
+          <button
+            type="button"
+            onClick={() => handleNavClick('/contact')}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-left transition-all ${
+              path === '/contact' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-900'
+            }`}
+          >
+            <Mail className="w-4 h-4" />
+            Contact Us
+          </button>
+
+          <div className="pt-2 border-t border-slate-800 flex gap-2">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenJoin();
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs font-bold text-center"
+            >
+              Join Room
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenCreate();
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold text-center shadow-md"
+            >
+              Create Room
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

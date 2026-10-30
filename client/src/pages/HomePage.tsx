@@ -3,7 +3,20 @@ import { Hero } from '../components/Hero';
 import { GameCard } from '../components/GameCard';
 import { GAMES_METADATA } from '@shared/games';
 import { GameMetadata } from '@shared/types';
-import { Sparkles, Shield, Cpu, Zap, Heart } from 'lucide-react';
+import { usePageMeta, Link } from '../router/Router';
+import { AdContainer } from '../components/AdContainer';
+import {
+  Sparkles,
+  Shield,
+  Cpu,
+  Zap,
+  BookOpen,
+  ArrowRight,
+  HelpCircle,
+  Users,
+  CheckCircle2,
+  Lock,
+} from 'lucide-react';
 
 interface HomePageProps {
   onCreateRoom: (gameId?: string) => void;
@@ -11,14 +24,21 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onCreateRoom, onJoinRoom }) => {
+  usePageMeta(
+    'Friends Arcade — Instant Real-Time Multiplayer Games',
+    'Play instant multiplayer games with friends in real-time. Zero signup, zero lag, private rooms, and 100% in-memory fun.',
+    '/'
+  );
+
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   const categories = ['All', 'Classic', 'Action', 'Puzzle', 'Party'];
 
   const gamesList = Object.values(GAMES_METADATA);
-  const filteredGames = selectedCategory === 'All'
-    ? gamesList
-    : gamesList.filter(g => g.category === selectedCategory);
+  const filteredGames =
+    selectedCategory === 'All'
+      ? gamesList
+      : gamesList.filter(g => g.category === selectedCategory);
 
   const handleSelectGame = (game: GameMetadata) => {
     onCreateRoom(game.id);
@@ -36,6 +56,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateRoom, onJoinRoom }) 
         onCreateRoom={() => onCreateRoom()}
         onJoinRoom={onJoinRoom}
       />
+
+      {/* Non-intrusive Ad slot below Hero */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
+        <AdContainer format="horizontal" />
+      </div>
 
       {/* Mini-Games Grid Section */}
       <section id="games-grid" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 w-full">
@@ -75,6 +100,33 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateRoom, onJoinRoom }) 
         </div>
       </section>
 
+      {/* Strategy Guides Highlight Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-10 w-full">
+        <div className="p-8 rounded-3xl bg-gradient-to-r from-blue-950/60 via-slate-900/80 to-purple-950/50 border border-slate-800 shadow-2xl">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold uppercase tracking-wider">
+                <BookOpen className="w-3.5 h-3.5" />
+                Featured Strategy Guides
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-display font-black text-white">
+                Learn Game Rules & Winning Tactics
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Whether you're mastering Chess piece movements, planning token safe-zones in multiplayer Ludo, or calculating 4-in-a-row traps in Connect Four, our original strategy guides have you covered.
+              </p>
+            </div>
+            <Link
+              to="/guides"
+              className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2 shrink-0"
+            >
+              <span>Explore Strategy Guides</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Features / Architecture Highlights */}
       <section className="border-t border-slate-800/80 bg-slate-950/60 py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -83,7 +135,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateRoom, onJoinRoom }) 
               Built for Friends. Engineered for Speed.
             </h3>
             <p className="text-slate-400 text-sm max-w-xl mx-auto">
-              No bloated accounts, no cookies tracking you, and absolutely zero database latency.
+              No bloated accounts, no trackers following you around, and zero database latency.
             </p>
           </div>
 
@@ -121,20 +173,65 @@ export const HomePage: React.FC<HomePageProps> = ({ onCreateRoom, onJoinRoom }) 
         </div>
       </section>
 
-      {/* Arcade Footer */}
-      <footer className="mt-auto border-t border-slate-800/80 bg-slate-950 py-8 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-black text-white">Friends Arcade</span>
-            <span>—</span>
-            <span>Instant Real-Time Multiplayer</span>
+      {/* Frequently Asked Questions (Valuable for SEO & AdSense Content Depth) */}
+      <section className="py-16 max-w-5xl mx-auto px-4 sm:px-6 w-full">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold uppercase tracking-wider mb-2">
+            <HelpCircle className="w-3.5 h-3.5" />
+            Common Questions
           </div>
-          <div className="flex items-center gap-1 text-slate-400">
-            <span>Pure WebSockets • Zero Database • Crafted with</span>
-            <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+          <h3 className="text-2xl sm:text-3xl font-display font-black text-white">
+            Frequently Asked Questions
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs sm:text-sm">
+          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
+            <h4 className="font-bold text-white mb-1.5 flex items-center gap-2">
+              <Users className="w-4 h-4 text-blue-400 shrink-0" />
+              Do my friends need to create an account?
+            </h4>
+            <p className="text-slate-400 leading-relaxed">
+              No! Friends Arcade is 100% friction-free. Simply create a room, share the 6-character room code or link, choose a nickname, and start playing immediately.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
+            <h4 className="font-bold text-white mb-1.5 flex items-center gap-2">
+              <Lock className="w-4 h-4 text-emerald-400 shrink-0" />
+              What is the Zero-Database model?
+            </h4>
+            <p className="text-slate-400 leading-relaxed">
+              All room data and active games exist solely in volatile server RAM. When players close their tabs, rooms are automatically purged from memory. No personal data is stored.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
+            <h4 className="font-bold text-white mb-1.5 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+              Can I play on iPhone, Android, or tablet?
+            </h4>
+            <p className="text-slate-400 leading-relaxed">
+              Yes. The web app is fully responsive and supports touch events, responsive grids, and low-latency audio across all modern mobile browsers.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800">
+            <h4 className="font-bold text-white mb-1.5 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
+              What happens if my connection drops?
+            </h4>
+            <p className="text-slate-400 leading-relaxed">
+              We provide a 30-second disconnection grace period. If your Wi-Fi flickers, simply reopen the link and you will automatically rejoin your existing match.
+            </p>
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Ad slot before Footer */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full mb-8">
+        <AdContainer format="horizontal" />
+      </div>
     </div>
   );
 };

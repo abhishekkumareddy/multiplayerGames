@@ -1,0 +1,17 @@
+# https://friendsarcade.fun/robots.txt
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /privacy-policy
+Allow: /terms-and-conditions
+Allow: /cookie-policy
+Allow: /guides
+Allow: /guides/*
+Allow: /assets/*
+
+# Disallow private multiplayer room instances and invite codes from search engine indexing
+Disallow: /room/
+Disallow: /*?room=*
+
+Sitemap: https://friendsarcade.fun/sitemap.xml

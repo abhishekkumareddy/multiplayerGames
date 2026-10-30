@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { RoomProvider, useRoom } from './hooks/useRoom';
 import { RouterProvider, useRouter } from './router/Router';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { CookieBanner } from './components/CookieBanner';
@@ -127,7 +128,7 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-sans selection:bg-blue-600 selection:text-white transition-colors duration-200">
       {/* Top Navbar */}
       <Navbar
         onOpenCreate={() => handleOpenCreate()}
@@ -184,11 +185,13 @@ const MainApp: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <RouterProvider>
-      <RoomProvider>
-        <MainApp />
-      </RoomProvider>
-    </RouterProvider>
+    <ThemeProvider>
+      <RouterProvider>
+        <RoomProvider>
+          <MainApp />
+        </RoomProvider>
+      </RouterProvider>
+    </ThemeProvider>
   );
 };
 

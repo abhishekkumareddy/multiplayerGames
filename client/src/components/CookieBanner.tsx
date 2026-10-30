@@ -79,20 +79,20 @@ export const CookieBanner: React.FC = () => {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 30, scale: 0.95 }}
           transition={{ duration: 0.25 }}
-          className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-5 md:p-6 shadow-2xl text-slate-100 ring-1 ring-white/10"
+          className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700/80 rounded-3xl p-5 md:p-6 shadow-2xl text-slate-900 dark:text-slate-100 ring-1 ring-black/5 dark:ring-white/10"
           role="dialog"
           aria-label="Cookie and Privacy Consent"
         >
           <div className="flex items-start gap-3.5 mb-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-600/20 text-blue-400 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
               <Cookie className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 We Respect Your Privacy & Gaming Experience
               </h3>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Friends Arcade uses essential local storage for in-room connectivity, nickname preferences, and zero-database game state. We and third-party partners (such as Google AdSense) also use cookies to deliver relevant content and analyze traffic.
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                Friends Arcade uses essential local storage for in-room connectivity, nickname preferences, and theme settings. We and third-party partners (such as Google AdSense) also use cookies to deliver relevant content and analyze traffic.
               </p>
             </div>
           </div>
@@ -102,39 +102,39 @@ export const CookieBanner: React.FC = () => {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="mt-3 mb-4 space-y-2 border-t border-slate-800 pt-3 text-xs"
+              className="mt-3 mb-4 space-y-2 border-t border-slate-200 dark:border-slate-800 pt-3 text-xs"
             >
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
                 <div>
-                  <div className="font-semibold text-white">Essential & Session Storage</div>
-                  <div className="text-[11px] text-slate-400">Required for room codes, audio mute state, and real-time multiplayer sockets.</div>
+                  <div className="font-semibold text-slate-900 dark:text-white">Essential & Session Storage</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Required for room codes, audio mute state, and real-time multiplayer sockets.</div>
                 </div>
-                <span className="text-[11px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Always Active</span>
+                <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full">Always Active</span>
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
                 <div>
-                  <div className="font-semibold text-white">Analytics Cookies</div>
-                  <div className="text-[11px] text-slate-400">Helps us evaluate latency, server errors, and game balance.</div>
+                  <div className="font-semibold text-slate-900 dark:text-white">Analytics Cookies</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Helps us evaluate latency, server errors, and game balance.</div>
                 </div>
                 <input
                   type="checkbox"
                   checked={analyticsEnabled}
                   onChange={e => setAnalyticsEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500"
+                  className="w-4 h-4 rounded text-blue-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:ring-blue-500"
                 />
               </div>
 
-              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
                 <div>
-                  <div className="font-semibold text-white">Advertising & Google Partner Cookies</div>
-                  <div className="text-[11px] text-slate-400">Allows non-intrusive ads from Google AdSense and certified vendors.</div>
+                  <div className="font-semibold text-slate-900 dark:text-white">Advertising & Google Partner Cookies</div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Allows non-intrusive ads from Google AdSense and certified vendors.</div>
                 </div>
                 <input
                   type="checkbox"
                   checked={advertisingEnabled}
                   onChange={e => setAdvertisingEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 bg-slate-900 border-slate-700 focus:ring-blue-500"
+                  className="w-4 h-4 rounded text-blue-600 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 focus:ring-blue-500"
                 />
               </div>
             </motion.div>
@@ -143,7 +143,7 @@ export const CookieBanner: React.FC = () => {
           <div className="flex items-center justify-between gap-2 mt-4 text-xs">
             <Link
               to="/cookie-policy"
-              className="text-slate-400 hover:text-white underline decoration-slate-600 underline-offset-2 transition-colors"
+              className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white underline decoration-slate-400 dark:decoration-slate-600 underline-offset-2 transition-colors"
             >
               Learn More
             </Link>
@@ -152,7 +152,7 @@ export const CookieBanner: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPreferences(prev => !prev)}
-                className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors flex items-center gap-1.5"
+                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Settings className="w-3.5 h-3.5" />
                 <span>{showPreferences ? 'Close' : 'Preferences'}</span>
@@ -162,7 +162,7 @@ export const CookieBanner: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSavePreferences}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-md shadow-blue-500/20"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer"
                 >
                   Save Choices
                 </button>
@@ -171,14 +171,14 @@ export const CookieBanner: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAcceptEssentialOnly}
-                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold transition-colors"
+                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold transition-colors cursor-pointer"
                   >
                     Reject Non-Essential
                   </button>
                   <button
                     type="button"
                     onClick={handleAcceptAll}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-md shadow-blue-500/20 flex items-center gap-1.5 cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>Accept All</span>

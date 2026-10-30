@@ -4,7 +4,20 @@ export type GameId =
   | 'connect-four'
   | 'memory-match'
   | 'reaction-challenge'
-  | 'quick-quiz';
+  | 'quick-quiz'
+  | 'chess'
+  | 'ludo'
+  | 'dots-and-boxes'
+  | 'game-2048'
+  | 'sudoku'
+  | 'word-guess';
+
+export type GameCategory =
+  | 'Board Games'
+  | 'Puzzle Games'
+  | 'Strategy Games'
+  | 'Casual Games'
+  | 'Party Games';
 
 export interface GameMetadata {
   id: GameId;
@@ -13,7 +26,7 @@ export interface GameMetadata {
   description: string;
   minPlayers: number;
   maxPlayers: number;
-  category: 'Classic' | 'Action' | 'Puzzle' | 'Party';
+  category: GameCategory;
   estimatedTime: string;
   accentColor: string;
   bgGradient: string;
@@ -63,6 +76,17 @@ export type RoomErrorCode =
 
 export interface RoomError {
   code: RoomErrorCode;
+  message: string;
+}
+
+export interface PlayerDepartedPayload {
+  socketId: string;
+  playerName: string;
+  avatar: string;
+  reason: 'left' | 'disconnected';
+  remainingCount: number;
+  hostReassigned: boolean;
+  newHostName?: string;
   message: string;
 }
 
@@ -180,6 +204,119 @@ export interface QuizState {
   secondsRemaining: number;
 }
 
+// 7. Chess
+export interface ChessState {
+  fen: string;
+  turn: 'w' | 'b';
+  turnPlayerId: string; // socketId
+  players: {
+    white: { socketId: string; playerName: string; avatar: string };
+    black: { socketId: string; playerName: string; avatar: string };
+  };
+  history: string[]; // SAN notation moves e.g. ["e4", "e5", "Nf3"]
+  isCheck: boolean;
+  isCheckmate: boolean;
+  isDraw: boolean;
+  drawReason?: 'stalemate' | 'threefold_repetition' | 'insufficient_material' | 'fifty_move_rule' | 'resigned' | 'agreement';
+  winner: string | 'draw' | null; // socketId or 'draw' or null
+  winnerReason?: string;
+  capturedPieces: {
+    w: string[]; // captured by white
+    b: string[]; // captured by black
+  };
+  lastMove?: { from: string; to: string };
+}
+
+// 8. Ludo
+export type LudoColor = 'red' | 'green' | 'yellow' | 'blue';
+
+export interface LudoPlayer {
+  socketId: string;
+  playerName: string;
+  avatar: string;
+  color: LudoColor;
+  tokens: number[]; // 4 tokens: -1 = yard, 0..51 = track, 52..56 = home path, 57 = finished home
+  hasWon: boolean;
+  rank?: number;
+}
+
+export interface LudoState {
+  players: LudoPlayer[];
+  turnOrder: LudoColor[];
+  currentTurnColor: LudoColor;
+  currentTurnSocketId: string;
+  diceValue: number | null;
+  canRoll: boolean;
+  movableTokenIndices: number[]; // 0..3 indices of current player
+  phase: 'rolling' | 'moving' | 'game_over';
+  winner: string | null;
+  rankings: { socketId: string; playerName: string; rank: number; color: LudoColor }[];
+  lastActionText: string;
+}
+
+// 9. Dots and Boxes
+export interface DotsAndBoxesState {
+  gridSize: number; // 3 -> 3x3 boxes, 4x4 dots
+  horizontalLines: (string | null)[][]; // 4 rows x 3 cols: player socketId or null
+  verticalLines: (string | null)[][]; // 3 rows x 4 cols: player socketId or null
+  boxes: (string | null)[][]; // 3 rows x 3 cols: owner socketId or null
+  currentTurn: string; // socketId
+  scores: Record<string, number>;
+  winner: string | 'draw' | null;
+  totalBoxes: number;
+  completedBoxes: number;
+}
+
+// 10. Game 2048
+export interface Player2048State {
+  board: number[][]; // 4x4
+  score: number;
+  bestTile: number;
+  gameOver: boolean;
+}
+
+export interface Game2048State {
+  boards: Record<string, Player2048State>;
+  scores: Record<string, number>;
+  winner: string | 'draw' | null;
+  isOver: boolean;
+}
+
+// 11. Sudoku
+export interface SudokuState {
+  initialBoard: number[][]; // 9x9 (0 for empty)
+  currentBoard: number[][]; // 9x9
+  solution: number[][];
+  pencilMarks: Record<string, number[]>; // "row-col" -> numbers
+  scores: Record<string, number>;
+  errors: Record<string, number>;
+  winner: string | null;
+  isComplete: boolean;
+  lastCellFilled?: { row: number; col: number; val: number; socketId: string };
+}
+
+// 12. Word Guess
+export interface WordGuessAttempt {
+  word: string;
+  feedback: ('correct' | 'present' | 'absent')[];
+}
+
+export interface WordGuessPlayerState {
+  attempts: WordGuessAttempt[];
+  solved: boolean;
+  attemptsUsed: number;
+}
+
+export interface WordGuessState {
+  targetWordLength: number;
+  maxAttempts: number;
+  playerGuesses: Record<string, WordGuessPlayerState>;
+  phase: 'guessing' | 'game_over';
+  winner: string | 'tie' | null;
+  targetWord?: string;
+  round: number;
+}
+
 // ----------------- Game Action Payloads -----------------
 
 export interface GameActionPayload {
@@ -208,6 +345,7 @@ export const SOCKET_EVENTS = {
   ROOM_UPDATED: 'room:updated',
   ROOM_ERROR: 'room:error',
   PLAYER_DISCONNECTED: 'player:disconnected',
+  PLAYER_DEPARTED: 'player:departed',
   PLAYER_RECONNECTED: 'player:reconnected',
   GAME_STATE: 'game:state',
   GAME_FINISHED: 'game:finished',

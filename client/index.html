@@ -1,13 +1,25 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233B82F6'><path d='M6 11h4V7H6v4zm12-4h-4v4h4V7zm-2 8H8v-2h8v2zm4-12H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14z'/></svg>" />
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('friends_arcade_theme');
+          if (t === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366F1'><path d='M6 11h4V7H6v4zm12-4h-4v4h4V7zm-2 8H8v-2h8v2zm4-12H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14z'/></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-    <meta name="theme-color" content="#0A0F1D" />
+    <meta name="theme-color" content="#4F46E5" />
     <title>Friends Arcade — Instant Real-Time Multiplayer Games</title>
-    <meta name="description" content="Play instant, browser-based multiplayer games with friends in real time. Private room codes, zero signup, zero lag, and 100% in-memory fun!" />
-    <meta name="keywords" content="multiplayer games, play with friends, online arcade, board games online, chess guide, ludo online, connect four, tic tac toe, trivia quiz" />
+    <meta name="description" content="Play instant, browser-based multiplayer games with friends in real time. Private room codes, instant room creation, no complicated setup, and pure fun!" />
+    <meta name="keywords" content="multiplayer games, play with friends, online arcade, board games online, chess multiplayer, ludo online, connect four, tic tac toe, trivia quiz" />
     <meta name="author" content="Friends Arcade" />
 
     <!-- Canonical URL -->
@@ -18,7 +30,7 @@
     <meta property="og:site_name" content="Friends Arcade" />
     <meta property="og:url" content="https://friendsarcade.fun/" />
     <meta property="og:title" content="Friends Arcade — Instant Real-Time Multiplayer Games" />
-    <meta property="og:description" content="Play instant, browser-based multiplayer games with friends in real time. Zero signup, private 6-character room codes, and 100% in-memory fun!" />
+    <meta property="og:description" content="Play instant, browser-based multiplayer games with friends in real time. Real-time multiplayer, instant room creation, and play with friends." />
 
     <!-- Twitter Card Metadata -->
     <meta name="twitter:card" content="summary_large_image" />

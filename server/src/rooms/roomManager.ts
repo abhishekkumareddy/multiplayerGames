@@ -204,7 +204,20 @@ export class RoomManager {
     return { success: true, room };
   }
 
-  public leaveRoom(socketId: string): { success: boolean; roomId?: string; room?: Room; destroyed?: boolean } {
+  public leaveRoom(socketId: string): {
+    success: boolean;
+    roomId?: string;
+    room?: Room;
+    destroyed?: boolean;
+    departedPlayer?: {
+      socketId: string;
+      playerName: string;
+      avatar: string;
+      remainingCount: number;
+      hostReassigned: boolean;
+      newHostName?: string;
+    };
+  } {
     const roomId = this.socketToRoom.get(socketId);
     if (!roomId) return { success: false };
 
@@ -219,7 +232,8 @@ export class RoomManager {
     // Remove player
     const playerIndex = room.players.findIndex(p => p.socketId === socketId);
     if (playerIndex !== -1) {
-      const wasHost = room.players[playerIndex].isHost;
+      const leavingPlayer = room.players[playerIndex];
+      const wasHost = leavingPlayer.isHost;
       room.players.splice(playerIndex, 1);
 
       // Also remove rematch vote
@@ -228,8 +242,22 @@ export class RoomManager {
       // If room is empty, destroy it
       if (room.players.length === 0) {
         this.cleanupRoom(roomId);
-        return { success: true, roomId, destroyed: true };
+        return {
+          success: true,
+          roomId,
+          destroyed: true,
+          departedPlayer: {
+            socketId,
+            playerName: leavingPlayer.playerName,
+            avatar: leavingPlayer.avatar,
+            remainingCount: 0,
+            hostReassigned: false,
+          },
+        };
       }
+
+      let hostReassigned = false;
+      let newHostName: string | undefined;
 
       // If host left, reassign host to first remaining connected player
       if (wasHost) {
@@ -238,6 +266,8 @@ export class RoomManager {
           nextHost.isHost = true;
           nextHost.isReady = true;
           room.hostId = nextHost.socketId;
+          hostReassigned = true;
+          newHostName = nextHost.playerName;
         }
       }
 
@@ -248,13 +278,35 @@ export class RoomManager {
       }
 
       room.lastActivity = Date.now();
-      return { success: true, roomId, room, destroyed: false };
+      return {
+        success: true,
+        roomId,
+        room,
+        destroyed: false,
+        departedPlayer: {
+          socketId,
+          playerName: leavingPlayer.playerName,
+          avatar: leavingPlayer.avatar,
+          remainingCount: room.players.length,
+          hostReassigned,
+          newHostName,
+        },
+      };
     }
 
     return { success: true, roomId, room, destroyed: false };
   }
 
-  public handleDisconnect(socketId: string): { roomId?: string; room?: Room } {
+  public handleDisconnect(socketId: string): {
+    roomId?: string;
+    room?: Room;
+    disconnectedPlayer?: {
+      socketId: string;
+      playerName: string;
+      avatar: string;
+      remainingCount: number;
+    };
+  } {
     const roomId = this.socketToRoom.get(socketId);
     if (!roomId) return {};
 
@@ -287,6 +339,14 @@ export class RoomManager {
       this.emptyRoomTimers.set(roomId, timer);
     }
 
+    const remainingCount = room.players.filter(p => p.connected).length;
+    const disconnectedPlayer = {
+      socketId,
+      playerName: player.playerName,
+      avatar: player.avatar,
+      remainingCount,
+    };
+
     // Start disconnect grace period timer for this specific player
     const timerKey = `${roomId}:${socketId}`;
     const graceTimer = setTimeout(() => {
@@ -296,15 +356,38 @@ export class RoomManager {
       if (currentRoom) {
         const idx = currentRoom.players.findIndex(p => p.socketId === socketId);
         if (idx !== -1 && !currentRoom.players[idx].connected) {
-          this.leaveRoom(socketId);
-          this.broadcastRoomUpdate(roomId);
+          const leaveResult = this.leaveRoom(socketId);
+          if (leaveResult.roomId && !leaveResult.destroyed) {
+            this.broadcastRoomUpdate(roomId);
+            if (this.io && leaveResult.departedPlayer) {
+              const count = leaveResult.departedPlayer.remainingCount;
+              const msg = leaveResult.departedPlayer.hostReassigned
+                ? `${leaveResult.departedPlayer.playerName} left the room. (${count} player${count === 1 ? '' : 's'} remaining). ${leaveResult.departedPlayer.newHostName} is now host.`
+                : `${leaveResult.departedPlayer.playerName} left the room. (${count} player${count === 1 ? '' : 's'} remaining)`;
+
+              this.io.to(roomId).emit(SOCKET_EVENTS.PLAYER_DEPARTED, {
+                ...leaveResult.departedPlayer,
+                reason: 'left',
+                message: msg,
+              });
+              this.io.to(roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, {
+                id: `sys-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                senderId: 'system',
+                senderName: 'Arcade System',
+                avatar: '📢',
+                text: msg,
+                timestamp: Date.now(),
+                isSystem: true,
+              });
+            }
+          }
         }
       }
     }, CONFIG.DISCONNECT_GRACE_PERIOD_MS);
 
     this.disconnectTimers.set(timerKey, graceTimer);
 
-    return { roomId, room };
+    return { roomId, room, disconnectedPlayer };
   }
 
   public setPlayerReady(socketId: string, isReady: boolean): { success: boolean; room?: Room; error?: RoomError } {

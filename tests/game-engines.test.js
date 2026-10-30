@@ -6,6 +6,12 @@ import { ConnectFourEngine } from '../server/dist/server/src/games/ConnectFourEn
 import { MemoryMatchEngine } from '../server/dist/server/src/games/MemoryMatchEngine.js';
 import { ReactionChallengeEngine } from '../server/dist/server/src/games/ReactionChallengeEngine.js';
 import { QuickQuizEngine } from '../server/dist/server/src/games/QuickQuizEngine.js';
+import { ChessEngine } from '../server/dist/server/src/games/ChessEngine.js';
+import { LudoEngine } from '../server/dist/server/src/games/LudoEngine.js';
+import { DotsAndBoxesEngine } from '../server/dist/server/src/games/DotsAndBoxesEngine.js';
+import { Game2048Engine } from '../server/dist/server/src/games/Game2048Engine.js';
+import { SudokuEngine } from '../server/dist/server/src/games/SudokuEngine.js';
+import { WordGuessEngine } from '../server/dist/server/src/games/WordGuessEngine.js';
 
 function createMockCallbacks() {
   return {
@@ -142,6 +148,176 @@ test('Game Engine 6: Quick Quiz', () => {
   // Player answers
   const ansRes = game.handleAction('p1', 'submit_answer', { optionIndex: 0 });
   assert.equal(ansRes.success, true);
+
+  game.cleanup();
+});
+
+test('Game Engine 7: Chess Engine (Server Authoritative)', () => {
+  const callbacks = createMockCallbacks();
+  const game = new ChessEngine('ROOM_CHESS', mockPlayers2, callbacks);
+
+  const s0 = game.getState();
+  assert.equal(s0.turn, 'w');
+  assert.equal(s0.turnPlayerId, 'p1');
+  assert.equal(s0.isCheck, false);
+  assert.equal(s0.winner, null);
+
+  // Black (p2) tries to move on White's turn -> fails
+  const illegalTurn = game.handleAction('p2', 'move', { from: 'e7', to: 'e5' });
+  assert.equal(illegalTurn.success, false);
+
+  // White plays e2 -> e4
+  const m1 = game.handleAction('p1', 'move', { from: 'e2', to: 'e4' });
+  assert.equal(m1.success, true);
+
+  const s1 = game.getState();
+  assert.equal(s1.turn, 'b');
+  assert.equal(s1.turnPlayerId, 'p2');
+  assert.deepEqual(s1.history, ['e4']);
+
+  // Black plays e7 -> e5
+  const m2 = game.handleAction('p2', 'move', { from: 'e7', to: 'e5' });
+  assert.equal(m2.success, true);
+
+  // White plays Scholar's Mate moves:
+  // 2. Qh5
+  game.handleAction('p1', 'move', { from: 'd1', to: 'h5' });
+  // 2... Nc6
+  game.handleAction('p2', 'move', { from: 'b8', to: 'c6' });
+  // 3. Bc4
+  game.handleAction('p1', 'move', { from: 'f1', to: 'c4' });
+  // 3... Nf6
+  game.handleAction('p2', 'move', { from: 'g8', to: 'f6' });
+  // 4. Qxf7# (Checkmate!)
+  const mateRes = game.handleAction('p1', 'move', { from: 'h5', to: 'f7' });
+  assert.equal(mateRes.success, true);
+
+  const sFinal = game.getState();
+  assert.equal(sFinal.isCheckmate, true);
+  assert.equal(sFinal.winner, 'p1');
+  assert.equal(sFinal.winnerReason, 'Checkmate');
+  assert.equal(sFinal.capturedPieces.w.length, 1); // Captured pawn
+
+  game.cleanup();
+});
+
+test('Game Engine 8: Ludo Express Engine', () => {
+  const callbacks = createMockCallbacks();
+  const game = new LudoEngine('ROOM_LUDO', mockPlayers2, callbacks);
+
+  const s0 = game.getState();
+  assert.equal(s0.currentTurnColor, 'red');
+  assert.equal(s0.currentTurnSocketId, 'p1');
+  assert.equal(s0.canRoll, true);
+  assert.equal(s0.phase, 'rolling');
+
+  // Player rolls dice
+  const rollRes = game.handleAction('p1', 'roll_dice');
+  assert.equal(rollRes.success, true);
+
+  const s1 = game.getState();
+  assert.ok(s1.diceValue >= 1 && s1.diceValue <= 6);
+
+  // If rolled 6, token can enter track; otherwise no moves
+  if (s1.diceValue === 6) {
+    assert.ok(s1.movableTokenIndices.length > 0);
+    const moveRes = game.handleAction('p1', 'move_token', { tokenIndex: 0 });
+    assert.equal(moveRes.success, true);
+  }
+
+  game.cleanup();
+});
+
+test('Game Engine 9: Dots and Boxes Engine', () => {
+  const callbacks = createMockCallbacks();
+  const game = new DotsAndBoxesEngine('ROOM_DOTS', mockPlayers2, callbacks);
+
+  const s0 = game.getState();
+  assert.equal(s0.currentTurn, 'p1');
+  assert.equal(s0.completedBoxes, 0);
+
+  // p1 draws top line of box (0, 0): h[0][0]
+  const l1 = game.handleAction('p1', 'draw_line', { type: 'h', row: 0, col: 0 });
+  assert.equal(l1.success, true);
+
+  // Turn changes to p2
+  const s1 = game.getState();
+  assert.equal(s1.currentTurn, 'p2');
+
+  // p2 draws bottom line: h[1][0]
+  game.handleAction('p2', 'draw_line', { type: 'h', row: 1, col: 0 });
+  // p1 draws left line: v[0][0]
+  game.handleAction('p1', 'draw_line', { type: 'v', row: 0, col: 0 });
+  // p2 draws right line: v[0][1] -> Completes box (0, 0)!
+  game.handleAction('p2', 'draw_line', { type: 'v', row: 0, col: 1 });
+
+  const s2 = game.getState();
+  assert.equal(s2.completedBoxes, 1);
+  assert.equal(s2.boxes[0][0], 'p2');
+  assert.equal(s2.scores['p2'], 1);
+  // p2 completed box -> keeps turn!
+  assert.equal(s2.currentTurn, 'p2');
+
+  game.cleanup();
+});
+
+test('Game Engine 10: 2048 Battle Engine', () => {
+  const callbacks = createMockCallbacks();
+  const game = new Game2048Engine('ROOM_2048', mockPlayers2, callbacks);
+
+  const s0 = game.getState();
+  assert.ok(s0.boards['p1']);
+  assert.ok(s0.boards['p2']);
+
+  // Count non-zero tiles on p1 board (should be 2 initially)
+  const initialTiles = s0.boards['p1'].board.flat().filter(v => v > 0).length;
+  assert.equal(initialTiles, 2);
+
+  // Slide left
+  game.handleAction('p1', 'slide', { direction: 'left' });
+  const s1 = game.getState();
+  assert.ok(s1.boards['p1'].board.flat().filter(v => v > 0).length >= 2);
+
+  game.cleanup();
+});
+
+test('Game Engine 11: Sudoku Duel Engine', () => {
+  const callbacks = createMockCallbacks();
+  const game = new SudokuEngine('ROOM_SUDOKU', mockPlayers2, callbacks);
+
+  const s0 = game.getState();
+  assert.equal(s0.initialBoard[0][0], 5);
+  // (0, 2) is open (0)
+  assert.equal(s0.initialBoard[0][2], 0);
+
+  // Solution for (0, 2) is 4. Wrong guess (9) -> penalized
+  const wrongRes = game.handleAction('p1', 'fill_cell', { row: 0, col: 2, val: 9 });
+  assert.equal(wrongRes.success, false);
+  assert.equal(game.getState().errors['p1'], 1);
+
+  // Correct guess (4) -> accepted & scored
+  const correctRes = game.handleAction('p1', 'fill_cell', { row: 0, col: 2, val: 4 });
+  assert.equal(correctRes.success, true);
+  assert.equal(game.getState().scores['p1'], 10);
+  assert.equal(game.getState().currentBoard[0][2], 4);
+
+  game.cleanup();
+});
+
+test('Game Engine 12: Word Guess Engine', () => {
+  const callbacks = createMockCallbacks();
+  const game = new WordGuessEngine('ROOM_WORD', mockPlayers2, callbacks);
+
+  const s0 = game.getState();
+  assert.equal(s0.phase, 'guessing');
+
+  // Submit 5-letter guess
+  const g1 = game.handleAction('p1', 'guess_word', { word: 'GAMES' });
+  assert.equal(g1.success, true);
+
+  const s1 = game.getState();
+  assert.equal(s1.playerGuesses['p1'].attemptsUsed, 1);
+  assert.equal(s1.playerGuesses['p1'].attempts[0].feedback.length, 5);
 
   game.cleanup();
 });

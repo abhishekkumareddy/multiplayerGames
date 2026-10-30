@@ -147,7 +147,7 @@ export const ServerConfigModal: React.FC<ServerConfigModalProps> = ({ isOpen, on
                     <div>
                       <div className="font-bold text-emerald-200">Backend Online (HTTP 200 OK)</div>
                       <div className="text-[11px] text-emerald-300/80 mt-0.5">
-                        Latency: {healthResult.latencyMs}ms | Storage: {healthResult.data?.storage || 'In-Memory'}
+                        Latency: {healthResult.latencyMs}ms | Environment: {healthResult.data?.environment || 'production'}
                       </div>
                     </div>
                   </div>

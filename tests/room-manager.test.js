@@ -104,3 +104,32 @@ test('RoomManager - Disconnect and reconnection grace period', () => {
 
   rm.destroy();
 });
+
+test('RoomManager - Real-Time Departure Notification with >3 players', () => {
+  const io = new MockIO();
+  const rm = new RoomManager(io);
+
+  const createRes = rm.createRoom('socket-1', 'Abhishek', '👑', 'ludo');
+  const code = createRes.room.roomId;
+  rm.joinRoom(code, 'socket-2', 'Bob', '🐼');
+  rm.joinRoom(code, 'socket-3', 'Charlie', '🦊');
+  rm.joinRoom(code, 'socket-4', 'Diana', '🦄');
+
+  assert.equal(rm.getRoom(code).players.length, 4);
+
+  // Abhishek leaves room -> 3 players remaining, Bob becomes host
+  const leaveRes = rm.leaveRoom('socket-1');
+  assert.equal(leaveRes.success, true);
+  assert.equal(leaveRes.departedPlayer.playerName, 'Abhishek');
+  assert.equal(leaveRes.departedPlayer.remainingCount, 3);
+  assert.equal(leaveRes.departedPlayer.hostReassigned, true);
+  assert.equal(leaveRes.departedPlayer.newHostName, 'Bob');
+
+  // Charlie leaves room -> 2 players remaining, no host reassign
+  const leaveCharlie = rm.leaveRoom('socket-3');
+  assert.equal(leaveCharlie.departedPlayer.playerName, 'Charlie');
+  assert.equal(leaveCharlie.departedPlayer.remainingCount, 2);
+  assert.equal(leaveCharlie.departedPlayer.hostReassigned, false);
+
+  rm.destroy();
+});

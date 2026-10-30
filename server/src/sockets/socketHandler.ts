@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import { RoomManager } from '../rooms/roomManager.js';
-import { ChatMessage, GameId, SOCKET_EVENTS } from '../../../shared/types.js';
+import { ChatMessage, GameId, PlayerDepartedPayload, SOCKET_EVENTS } from '../../../shared/types.js';
 
 export function registerSocketHandlers(io: Server, roomManager: RoomManager) {
   io.on('connection', (socket: Socket) => {
@@ -101,7 +101,37 @@ export function registerSocketHandlers(io: Server, roomManager: RoomManager) {
           const result = roomManager.leaveRoom(socket.id);
           if (result.roomId) {
             socket.leave(result.roomId);
-            if (!result.destroyed) {
+            if (!result.destroyed && result.departedPlayer) {
+              const count = result.departedPlayer.remainingCount;
+              const countMsg = `${count} player${count === 1 ? '' : 's'} remaining`;
+              const msg = result.departedPlayer.hostReassigned
+                ? `${result.departedPlayer.playerName} left the room. (${countMsg}). ${result.departedPlayer.newHostName} is now the host.`
+                : `${result.departedPlayer.playerName} left the room. (${countMsg})`;
+
+              const payload: PlayerDepartedPayload = {
+                socketId: result.departedPlayer.socketId,
+                playerName: result.departedPlayer.playerName,
+                avatar: result.departedPlayer.avatar,
+                reason: 'left',
+                remainingCount: count,
+                hostReassigned: result.departedPlayer.hostReassigned,
+                newHostName: result.departedPlayer.newHostName,
+                message: msg,
+              };
+
+              io.to(result.roomId).emit(SOCKET_EVENTS.PLAYER_DEPARTED, payload);
+
+              const systemChat: ChatMessage = {
+                id: `sys-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                senderId: 'system',
+                senderName: 'Arcade System',
+                avatar: '📢',
+                text: msg,
+                timestamp: Date.now(),
+                isSystem: true,
+              };
+              io.to(result.roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, systemChat);
+
               roomManager.broadcastRoomUpdate(result.roomId);
             }
           }
@@ -262,12 +292,43 @@ export function registerSocketHandlers(io: Server, roomManager: RoomManager) {
     // 10. Disconnect Handling
     socket.on('disconnect', () => {
       try {
-        const { roomId, room } = roomManager.handleDisconnect(socket.id);
-        if (roomId && room) {
+        const { roomId, room, disconnectedPlayer } = roomManager.handleDisconnect(socket.id);
+        if (roomId && room && disconnectedPlayer) {
+          const count = disconnectedPlayer.remainingCount;
+          const countMsg = `${count} player${count === 1 ? '' : 's'} remaining`;
+          const msg = `${disconnectedPlayer.playerName} lost connection. (${countMsg})`;
+
+          const payload: PlayerDepartedPayload = {
+            socketId: socket.id,
+            playerName: disconnectedPlayer.playerName,
+            avatar: disconnectedPlayer.avatar,
+            reason: 'disconnected',
+            remainingCount: count,
+            hostReassigned: false,
+            message: msg,
+          };
+
           socket.to(roomId).emit(SOCKET_EVENTS.PLAYER_DISCONNECTED, {
             socketId: socket.id,
             roomId,
+            playerName: disconnectedPlayer.playerName,
+            remainingCount: count,
+            message: msg,
           });
+
+          socket.to(roomId).emit(SOCKET_EVENTS.PLAYER_DEPARTED, payload);
+
+          const systemChat: ChatMessage = {
+            id: `sys-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            senderId: 'system',
+            senderName: 'Arcade System',
+            avatar: '⚠️',
+            text: msg,
+            timestamp: Date.now(),
+            isSystem: true,
+          };
+          socket.to(roomId).emit(SOCKET_EVENTS.CHAT_MESSAGE, systemChat);
+
           roomManager.broadcastRoomUpdate(roomId);
         }
       } catch (err) {

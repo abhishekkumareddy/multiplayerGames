@@ -5,7 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import { io as ClientIO } from 'socket.io-client';
-import axios from '../client/node_modules/axios/index.js';
+import axios from 'axios';
 import { RoomManager } from '../server/dist/server/src/rooms/roomManager.js';
 import { registerSocketHandlers } from '../server/dist/server/src/sockets/socketHandler.js';
 import { isOriginAllowed, getAllowedOrigins, CONFIG } from '../server/dist/server/src/config/constants.js';
@@ -51,7 +51,6 @@ test('Integration Test Suite: API, CORS, Health Checks, and Real-Time Multiplaye
       uptimeSec: Math.floor(process.uptime()),
       timestamp: new Date().toISOString(),
       environment: CONFIG.NODE_ENV,
-      storage: '100% In-Memory (Zero Database)',
       activeRooms: roomManager.getRoomCount(),
       cors: {
         allowedOrigins: getAllowedOrigins(),
@@ -111,7 +110,6 @@ test('Integration Test Suite: API, CORS, Health Checks, and Real-Time Multiplaye
       const data = await res.json();
       assert.equal(data.status, 'ok');
       assert.equal(data.service, 'friends-arcade-backend');
-      assert.equal(data.storage, '100% In-Memory (Zero Database)');
       assert.equal(typeof data.uptimeSec, 'number');
       assert.equal(typeof data.activeRooms, 'number');
       assert.ok(Array.isArray(data.cors.allowedOrigins));

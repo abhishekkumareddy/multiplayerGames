@@ -54,7 +54,6 @@ const handleHealthCheck = (req: Request, res: Response) => {
     uptimeSec: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
     environment: CONFIG.NODE_ENV,
-    storage: '100% In-Memory (Zero Database)',
     activeRooms: roomManager.getRoomCount(),
     cors: {
       allowedOrigins: getAllowedOrigins(),
@@ -131,8 +130,8 @@ if (fs.existsSync(clientDistPath)) {
 httpServer.listen(CONFIG.PORT, () => {
   console.log(`===============================================`);
   console.log(`🎮 Friends Arcade Server running on port ${CONFIG.PORT}`);
-  console.log(`📡 Real-time WebSockets & In-Memory State ready`);
-  console.log(`🚫 Zero Database Mode: 100% In-Memory Runtime`);
+  console.log(`📡 Real-Time WebSockets & Multiplayer Ready`);
+  console.log(`⚡ Instant Room Creation and Synchronized Play`);
   console.log(`===============================================`);
 });
 

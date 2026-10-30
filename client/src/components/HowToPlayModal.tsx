@@ -100,10 +100,10 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-center gap-2">
-                  <Zap className="w-4 h-4 shrink-0 text-amber-400" />
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2">
+                  <Zap className="w-4 h-4 shrink-0 text-amber-500 dark:text-amber-400" />
                   <span>
-                    Zero database storage: games exist purely in server runtime memory for maximum privacy and zero latency.
+                    Instant Room Creation: Games start in real time over persistent WebSockets with zero complicated setup.
                   </span>
                 </div>
               </div>

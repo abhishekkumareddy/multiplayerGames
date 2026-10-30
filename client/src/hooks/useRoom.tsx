@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { socket } from '../socket/socketClient';
-import { ChatMessage, GameId, Player, Room, RoomError, SOCKET_EVENTS } from '@shared/types';
+import { ChatMessage, GameId, Player, PlayerDepartedPayload, Room, RoomError, SOCKET_EVENTS } from '@shared/types';
 import { sounds } from '../utils/sound';
 import confetti from 'canvas-confetti';
 
@@ -11,6 +11,7 @@ interface RoomContextType {
   isHost: boolean;
   isConnected: boolean;
   error: RoomError | null;
+  departureNotice: PlayerDepartedPayload | null;
   chatMessages: ChatMessage[];
   lastGameResult: { winner: string | null; scores: Record<string, number>; reason?: string } | null;
   createRoom: (name: string, avatar: string, gameId?: GameId) => Promise<boolean>;
@@ -23,6 +24,7 @@ interface RoomContextType {
   voteRematch: () => void;
   sendChatMessage: (text: string) => void;
   clearError: () => void;
+  clearDepartureNotice: () => void;
 }
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
@@ -32,6 +34,7 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [gameState, setGameState] = useState<any>(null);
   const [isConnected, setIsConnected] = useState<boolean>(socket.connected);
   const [error, setError] = useState<RoomError | null>(null);
+  const [departureNotice, setDepartureNotice] = useState<PlayerDepartedPayload | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [lastGameResult, setLastGameResult] = useState<{
     winner: string | null;
@@ -107,6 +110,15 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sounds.playError();
     };
 
+    const onPlayerDeparted = (data: PlayerDepartedPayload) => {
+      setDepartureNotice(data);
+      sounds.playError();
+      // Auto dismiss notice after 6 seconds
+      setTimeout(() => {
+        setDepartureNotice(current => (current?.socketId === data.socketId ? null : current));
+      }, 6000);
+    };
+
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on(SOCKET_EVENTS.ROOM_CREATED, onRoomCreated);
@@ -117,6 +129,7 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
     socket.on(SOCKET_EVENTS.GAME_FINISHED, onGameFinished);
     socket.on(SOCKET_EVENTS.CHAT_MESSAGE, onChatMessage);
     socket.on(SOCKET_EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnected);
+    socket.on(SOCKET_EVENTS.PLAYER_DEPARTED, onPlayerDeparted);
 
     return () => {
       socket.off('connect', onConnect);
@@ -129,6 +142,7 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.off(SOCKET_EVENTS.GAME_FINISHED, onGameFinished);
       socket.off(SOCKET_EVENTS.CHAT_MESSAGE, onChatMessage);
       socket.off(SOCKET_EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnected);
+      socket.off(SOCKET_EVENTS.PLAYER_DEPARTED, onPlayerDeparted);
     };
   }, []);
 
@@ -218,6 +232,10 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
   }, []);
 
+  const clearDepartureNotice = useCallback(() => {
+    setDepartureNotice(null);
+  }, []);
+
   return (
     <RoomContext.Provider
       value={{
@@ -227,6 +245,7 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isHost,
         isConnected,
         error,
+        departureNotice,
         chatMessages,
         lastGameResult,
         createRoom,
@@ -239,6 +258,7 @@ export const RoomProvider: React.FC<{ children: React.ReactNode }> = ({ children
         voteRematch,
         sendChatMessage,
         clearError,
+        clearDepartureNotice,
       }}
     >
       {children}
